@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placement Readiness Platform - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: hsl(245, 58%, 51%);
+            --primary-dark: hsl(245, 58%, 41%);
+            --primary-light: hsl(245, 58%, 95%);
+            --purple-700: #7e22ce;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --green-500: #22c55e;
+            --yellow-500: #eab308;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+        }
+
+        /* ── Layout ── */
+        .app { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0;
+            height: 100vh;
+        }
+
+        .sidebar-logo {
+            padding: 24px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .sidebar-logo h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .sidebar nav { padding: 16px; flex: 1; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 16px;
+            border-radius: 10px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            color: var(--gray-700);
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+
+        .nav-item:hover { background: var(--gray-100); }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px hsla(245, 58%, 51%, 0.35);
+        }
+
+        .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+        /* ── Main Area ── */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-left: 260px;
+        }
+
+        /* ── Header ── */
+        .dash-header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .dash-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .avatar {
+            width: 40px; height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        /* ── Page Content ── */
+        .page-content { padding: 32px; }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 28px;
+            color: var(--gray-800);
+            letter-spacing: -0.5px;
+        }
+
+        /* ── 2-column grid ── */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .main-area { margin-left: 0; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ── Card (shadcn-style) ── */
+        .card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 20px;
+            letter-spacing: -0.2px;
+        }
+
+        /* ── 1. Circular Progress ── */
+        .circular-progress-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 0;
+        }
+
+        .circular-progress-svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-circle-bg {
+            fill: none;
+            stroke: var(--gray-100);
+            stroke-width: 14;
+        }
+
+        .progress-circle-fill {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 14;
+            stroke-linecap: round;
+            stroke-dasharray: 440;
+            stroke-dashoffset: 440;
+            animation: fillCircle 1.5s ease forwards 0.3s;
+        }
+
+        @keyframes fillCircle {
+            to { stroke-dashoffset: 123; } /* 440 * (1 - 72/100) = 123.2 */
+        }
+
+        .circular-score {
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .score-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* ── 2. Radar Chart ── */
+        .radar-wrap {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .radar-svg {
+            overflow: visible;
+        }
+
+        /* ── 3. Continue Practice ── */
+        .topic-label {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+        }
+
+        .topic-sub {
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-bottom: 20px;
+        }
+
+        .progress-bar-wrap {
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .progress-bar-bg {
+            background: var(--gray-100);
+            border-radius: 99px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: var(--primary);
+            transition: width 1s ease;
+        }
+
+        .btn-continue {
+            margin-top: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-continue:hover { background: var(--primary-dark); }
+
+        /* ── 4. Weekly Goals ── */
+        .weekly-stat {
+            font-size: 15px;
+            color: var(--gray-600);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .weekly-stat span {
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .day-circles {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .day-circle-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .day-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--gray-200);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .day-circle.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .day-circle.active svg { stroke: white; }
+
+        .day-circle svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--gray-300);
+        }
+
+        .day-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gray-500);
+        }
+
+        /* ── 5. Upcoming Assessments ── */
+        .assessment-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .assessment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            background: var(--gray-50);
+        }
+
+        .assessment-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+
+        .assessment-time {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .assessment-badge {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 99px;
+            background: var(--primary-light);
+            color: var(--primary);
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo"><h2>Placement Prep</h2></div>
+        <nav>
+            <a class="nav-item active" href="#">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>Dashboard</span>
+            </a>
+            <a class="nav-item" href="#">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                <span>Practice</span>
+            </a>
+            <a class="nav-item" href="#">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>Assessments</span>
+            </a>
+            <a class="nav-item" href="#">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                <span>Resources</span>
+            </a>
+            <a class="nav-item" href="#">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main -->
+    <div class="main-area">
+        <div class="dash-header">
+            <h1>Placement Prep</h1>
+            <div class="avatar">U</div>
+        </div>
+
+        <div class="page-content">
+            <div class="page-title">Dashboard</div>
+
+            <div class="dashboard-grid">
+
+                <!-- 1. Overall Readiness -->
+                <div class="card">
+                    <div class="card-title">Overall Readiness</div>
+                    <div class="circular-progress-wrap">
+                        <svg class="circular-progress-svg" width="160" height="160" viewBox="0 0 160 160">
+                            <circle class="progress-circle-bg" cx="80" cy="80" r="70"/>
+                            <circle class="progress-circle-fill" cx="80" cy="80" r="70"/>
+                        </svg>
+                        <div class="circular-score">
+                            <div class="score-number">72<span style="font-size:24px;color:var(--gray-400)">/100</span></div>
+                            <div class="score-label">Readiness Score</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Skill Breakdown Radar Chart -->
+                <div class="card">
+                    <div class="card-title">Skill Breakdown</div>
+                    <div class="radar-wrap">
+                        <svg class="radar-svg" width="240" height="220" viewBox="0 0 240 220">
+                            <!-- Grid circles -->
+                            <polygon points="120,20 214,75 214,145 120,200 26,145 26,75" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+                            <polygon points="120,44 193,83 193,137 120,176 47,137 47,83" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+                            <polygon points="120,68 172,91 172,129 120,152 68,129 68,91" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+                            <polygon points="120,92 151,99 151,121 120,128 89,121 89,99" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+                            <!-- Axes -->
+                            <line x1="120" y1="110" x2="120" y2="20" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="214" y2="75" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="214" y2="145" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="120" y2="200" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="26" y2="145" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="26" y2="75" stroke="#e5e7eb" stroke-width="1"/>
+                            <!-- Data polygon: DSA=75, SystemDesign=60, Communication=80, Resume=85, Aptitude=70 -->
+                            <!-- Calculated points for each axis at given % -->
+                            <polygon
+                                points="120,37 199,82 202,139 120,183 41,136 41,80"
+                                fill="hsla(245,58%,51%,0.2)"
+                                stroke="hsl(245,58%,51%)"
+                                stroke-width="2"
+                            />
+                            <!-- Axis Labels -->
+                            <text x="120" y="13" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">DSA</text>
+                            <text x="224" y="74" text-anchor="start" font-size="12" font-weight="600" fill="#374151">System Design</text>
+                            <text x="220" y="152" text-anchor="start" font-size="12" font-weight="600" fill="#374151">Communication</text>
+                            <text x="120" y="216" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">Resume</text>
+                            <text x="16" y="152" text-anchor="end" font-size="12" font-weight="600" fill="#374151">Aptitude</text>
+                            <!-- Score labels -->
+                            <text x="126" y="37" font-size="10" fill="hsl(245,58%,51%)" font-weight="700">75</text>
+                            <text x="200" y="80" font-size="10" fill="hsl(245,58%,51%)" font-weight="700">60</text>
+                            <text x="202" y="142" font-size="10" fill="hsl(245,58%,51%)" font-weight="700">80</text>
+                            <text x="110" y="183" font-size="10" fill="hsl(245,58%,51%)" font-weight="700">85</text>
+                            <text x="28" y="138" font-size="10" fill="hsl(245,58%,51%)" font-weight="700">70</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 3. Continue Practice -->
+                <div class="card">
+                    <div class="card-title">Continue Practice</div>
+                    <div class="topic-label">Dynamic Programming</div>
+                    <div class="topic-sub">Last studied 2 days ago</div>
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar-label">
+                            <span>Progress</span>
+                            <span>3 / 10 completed</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: 30%"></div>
+                        </div>
+                    </div>
+                    <button class="btn-continue">Continue →</button>
+                </div>
+
+                <!-- 4. Weekly Goals -->
+                <div class="card">
+                    <div class="card-title">Weekly Goals</div>
+                    <div class="weekly-stat">Problems Solved: <span>12/20</span> this week</div>
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar-label">
+                            <span>60% complete</span>
+                            <span>8 remaining</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: 60%"></div>
+                        </div>
+                    </div>
+                    <div class="day-circles">
+                        <!-- Mon - active -->
+                        <div class="day-circle-wrap">
+                            <div class="day-circle active">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="day-label">Mon</span>
+                        </div>
+                        <!-- Tue - active -->
+                        <div class="day-circle-wrap">
+                            <div class="day-circle active">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="day-label">Tue</span>
+                        </div>
+                        <!-- Wed - active -->
+                        <div class="day-circle-wrap">
+                            <div class="day-circle active">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="day-label">Wed</span>
+                        </div>
+                        <!-- Thu - active -->
+                        <div class="day-circle-wrap">
+                            <div class="day-circle active">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="day-label">Thu</span>
+                        </div>
+                        <!-- Fri - inactive -->
+                        <div class="day-circle-wrap">
+                            <div class="day-circle">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+                            </div>
+                            <span class="day-label">Fri</span>
+                        </div>
+                        <!-- Sat - inactive -->
+                        <div class="day-circle-wrap">
+                            <div class="day-circle">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+                            </div>
+                            <span class="day-label">Sat</span>
+                        </div>
+                        <!-- Sun - inactive -->
+                        <div class="day-circle-wrap">
+                            <div class="day-circle">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+                            </div>
+                            <span class="day-label">Sun</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Upcoming Assessments (full width) -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="card-title">Upcoming Assessments</div>
+                    <div class="assessment-list">
+                        <div class="assessment-item">
+                            <div>
+                                <div class="assessment-name">DSA Mock Test</div>
+                                <div class="assessment-time">Tomorrow, 10:00 AM</div>
+                            </div>
+                            <div class="assessment-badge">Tomorrow</div>
+                        </div>
+                        <div class="assessment-item">
+                            <div>
+                                <div class="assessment-name">System Design Review</div>
+                                <div class="assessment-time">Wed, 2:00 PM</div>
+                            </div>
+                            <div class="assessment-badge">Wed</div>
+                        </div>
+                        <div class="assessment-item">
+                            <div>
+                                <div class="assessment-name">HR Interview Prep</div>
+                                <div class="assessment-time">Friday, 11:00 AM</div>
+                            </div>
+                            <div class="assessment-badge">Friday</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
