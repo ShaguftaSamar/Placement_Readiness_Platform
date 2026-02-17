@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placement Readiness Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: hsl(245, 58%, 51%);
+            --primary-dark: hsl(245, 58%, 41%);
+            --primary-light: hsl(245, 58%, 95%);
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --green-100: #dcfce7; --green-700: #15803d;
+            --yellow-100: #fef9c3; --yellow-700: #a16207;
+            --blue-100: #dbeafe; --blue-700: #1d4ed8;
+            --red-100: #fee2e2; --red-700: #b91c1c;
+            --purple-100: #f3e8ff; --purple-700: #7e22ce;
+            --orange-100: #ffedd5; --orange-700: #c2410c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+        }
+
+        .hidden { display: none !important; }
+        .app { display: flex; min-height: 100vh; }
+
+        /* ══ SIDEBAR ══ */
+        .sidebar {
+            width: 260px; background: white;
+            border-right: 1px solid var(--gray-200);
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
+            overflow-y: auto;
+        }
+        .sidebar-logo { padding: 24px; border-bottom: 1px solid var(--gray-200); }
+        .sidebar-logo h2 { font-size: 20px; font-weight: 700; color: var(--primary); }
+        .sidebar nav { padding: 16px; flex: 1; }
+        .nav-section-label {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.8px; color: var(--gray-400);
+            padding: 8px 16px 4px; margin-top: 8px;
+        }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 16px; border-radius: 10px; margin-bottom: 4px;
+            cursor: pointer; color: var(--gray-700); font-weight: 500;
+            font-size: 15px; transition: all 0.15s ease;
+            border: none; background: none; width: 100%; text-align: left;
+        }
+        .nav-item:hover { background: var(--gray-100); }
+        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 12px hsla(245,58%,51%,0.3); }
+        .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+        /* ══ MAIN ══ */
+        .main-area { flex: 1; display: flex; flex-direction: column; margin-left: 260px; }
+        .dash-header {
+            background: white; border-bottom: 1px solid var(--gray-200);
+            padding: 16px 32px; display: flex; justify-content: space-between;
+            align-items: center; position: sticky; top: 0; z-index: 10;
+        }
+        .dash-header h1 { font-size: 22px; font-weight: 700; }
+        .avatar {
+            width: 40px; height: 40px; background: var(--primary);
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; color: white; font-weight: 700;
+        }
+
+        /* ══ PAGE ══ */
+        .page { padding: 32px; }
+        .page-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .page-subtitle { font-size: 15px; color: var(--gray-500); margin-bottom: 32px; }
+
+        /* ══ CARD ══ */
+        .card { background: white; border: 1px solid var(--gray-200); border-radius: 16px; padding: 28px; }
+        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+
+        /* ══ STEP 3: DASHBOARD COMPONENTS ══ */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+        /* Circular Progress */
+        .circular-progress-wrap { display: flex; flex-direction: column; align-items: center; padding: 12px 0; }
+        .progress-circle-bg { fill: none; stroke: var(--gray-100); stroke-width: 14; }
+        .progress-circle-fill {
+            fill: none; stroke: var(--primary); stroke-width: 14;
+            stroke-linecap: round; stroke-dasharray: 440; stroke-dashoffset: 440;
+            animation: fillCircle 1.5s ease forwards 0.3s;
+        }
+        @keyframes fillCircle { to { stroke-dashoffset: 123; } }
+        .score-number { font-size: 48px; font-weight: 800; color: var(--primary); letter-spacing: -2px; line-height: 1; }
+        .score-label { font-size: 14px; color: var(--gray-500); margin-top: 6px; font-weight: 500; text-align: center; }
+
+        /* Progress Bar */
+        .progress-bar-bg { background: var(--gray-100); border-radius: 99px; height: 8px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 99px; background: var(--primary); }
+        .progress-bar-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--gray-500); margin-bottom: 8px; }
+
+        /* Day Circles */
+        .day-circles { display: flex; gap: 10px; margin-top: 20px; }
+        .day-circle-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .day-circle {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: 2px solid var(--gray-200); background: white;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .day-circle.active { background: var(--primary); border-color: var(--primary); }
+        .day-circle svg { width: 16px; height: 16px; }
+        .day-circle.active svg { stroke: white; }
+        .day-circle:not(.active) svg { stroke: var(--gray-300); }
+        .day-label { font-size: 11px; font-weight: 600; color: var(--gray-500); }
+
+        /* Assessment List */
+        .assessment-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 16px; border: 1px solid var(--gray-200);
+            border-radius: 10px; margin-bottom: 10px; background: var(--gray-50);
+        }
+        .assessment-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .assessment-time { font-size: 13px; color: var(--gray-500); }
+        .assessment-badge {
+            background: var(--primary-light); color: var(--primary);
+            font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 99px;
+        }
+
+        /* Radar Chart */
+        .radar-wrap { display: flex; align-items: center; justify-content: center; height: 220px; }
+
+        /* Continue Practice */
+        .topic-label { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .topic-sub { font-size: 14px; color: var(--gray-500); margin-bottom: 20px; }
+        .btn-continue {
+            margin-top: 20px; background: var(--primary); color: white;
+            border: none; padding: 10px 24px; border-radius: 8px;
+            font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+        }
+        .btn-continue:hover { background: var(--primary-dark); }
+
+        /* ══ STEP 4: JD ANALYZER ══ */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+        .form-input {
+            padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 8px;
+            font-size: 15px; font-family: inherit; color: var(--gray-800); background: white;
+            transition: border-color 0.15s;
+        }
+        .form-input:focus { outline: none; border-color: var(--primary); }
+        .form-textarea {
+            padding: 12px 14px; border: 1px solid var(--gray-200); border-radius: 8px;
+            font-size: 14px; font-family: inherit; color: var(--gray-800);
+            background: white; resize: vertical; min-height: 160px;
+            transition: border-color 0.15s; line-height: 1.6; width: 100%;
+        }
+        .form-textarea:focus { outline: none; border-color: var(--primary); }
+        .btn-primary {
+            background: var(--primary); color: white; border: none;
+            padding: 12px 28px; border-radius: 10px; font-size: 16px;
+            font-weight: 600; cursor: pointer; transition: background 0.15s;
+        }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary {
+            background: white; color: var(--gray-700); border: 1px solid var(--gray-200);
+            padding: 10px 20px; border-radius: 8px; font-size: 14px;
+            font-weight: 600; cursor: pointer; transition: all 0.15s;
+        }
+        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* Score Display */
+        .score-display {
+            display: flex; align-items: center; gap: 24px;
+            padding: 24px; background: var(--primary-light);
+            border-radius: 12px; margin-bottom: 24px;
+        }
+        .score-circle {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: var(--primary); color: white;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .score-num { font-size: 26px; font-weight: 800; line-height: 1; }
+        .score-max { font-size: 11px; opacity: 0.8; }
+        .score-info h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .score-info p { font-size: 14px; color: var(--gray-600); }
+
+        /* Tags */
+        .tag-group { margin-bottom: 16px; }
+        .tag-group-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); margin-bottom: 8px; }
+        .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag { padding: 4px 12px; border-radius: 99px; font-size: 13px; font-weight: 600; }
+        .tag-cs { background: var(--blue-100); color: var(--blue-700); }
+        .tag-lang { background: var(--green-100); color: var(--green-700); }
+        .tag-web { background: var(--purple-100); color: var(--purple-700); }
+        .tag-data { background: var(--yellow-100); color: var(--yellow-700); }
+        .tag-cloud { background: var(--orange-100); color: var(--orange-700); }
+        .tag-test { background: var(--red-100); color: var(--red-700); }
+        .tag-general { background: var(--gray-100); color: var(--gray-600); }
+
+        /* Results Grid */
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+        @media (max-width: 900px) { .results-grid { grid-template-columns: 1fr; } .dashboard-grid { grid-template-columns: 1fr; } }
+
+        /* Checklist */
+        .round-block { margin-bottom: 20px; }
+        .round-title { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .round-badge { background: var(--primary-light); color: var(--primary); font-size: 11px; padding: 2px 8px; border-radius: 99px; }
+        .checklist-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--gray-100); font-size: 14px; color: var(--gray-700); line-height: 1.5; }
+        .checklist-item:last-child { border-bottom: none; }
+        .checklist-item input { margin-top: 3px; cursor: pointer; accent-color: var(--primary); }
+
+        /* Day Plan */
+        .day-row { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-100); }
+        .day-row:last-child { border-bottom: none; }
+        .day-badge { background: var(--primary); color: white; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; white-space: nowrap; height: fit-content; flex-shrink: 0; }
+        .day-content { font-size: 14px; color: var(--gray-700); line-height: 1.6; }
+        .day-content strong { color: var(--gray-800); }
+
+        /* Questions */
+        .question-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
+        .question-item:last-child { border-bottom: none; }
+        .q-num { width: 24px; height: 24px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+        .q-text { color: var(--gray-700); line-height: 1.6; }
+
+        /* History */
+        .history-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; border: 1px solid var(--gray-200);
+            border-radius: 12px; margin-bottom: 12px; background: white;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .history-item:hover { border-color: var(--primary); box-shadow: 0 2px 8px hsla(245,58%,51%,0.1); }
+        .history-company { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .history-meta { font-size: 13px; color: var(--gray-500); }
+        .history-score { background: var(--primary); color: white; font-size: 18px; font-weight: 800; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .empty-state { text-align: center; padding: 64px 32px; color: var(--gray-400); }
+        .empty-state p { font-size: 16px; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <!-- ══ SIDEBAR ══ -->
+    <div class="sidebar">
+        <div class="sidebar-logo"><h2>Placement Prep</h2></div>
+        <nav>
+            <div class="nav-section-label">Main</div>
+            <button class="nav-item" onclick="showPage('dashboard')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" onclick="showPage('practice')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                <span>Practice</span>
+            </button>
+            <button class="nav-item" onclick="showPage('assessments')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>Assessments</span>
+            </button>
+            <button class="nav-item" onclick="showPage('resources')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                <span>Resources</span>
+            </button>
+            <button class="nav-item" onclick="showPage('profile')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>Profile</span>
+            </button>
+
+            <div class="nav-section-label">Analyzer</div>
+            <button class="nav-item" onclick="showPage('analyzer')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <span>JD Analyzer</span>
+            </button>
+            <button class="nav-item" onclick="showPage('results')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span>Results</span>
+            </button>
+            <button class="nav-item" onclick="showPage('history')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>History</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ══ MAIN AREA ══ -->
+    <div class="main-area">
+        <div class="dash-header">
+            <h1 id="page-header-title">Dashboard</h1>
+            <div class="avatar">U</div>
+        </div>
+
+        <!-- ══ DASHBOARD PAGE (Step 3) ══ -->
+        <div id="page-dashboard" class="page">
+            <div class="page-title">Dashboard</div>
+            <div class="dashboard-grid">
+
+                <!-- 1. Overall Readiness -->
+                <div class="card">
+                    <div class="card-title">Overall Readiness</div>
+                    <div class="circular-progress-wrap">
+                        <svg style="transform:rotate(-90deg)" width="160" height="160" viewBox="0 0 160 160">
+                            <circle class="progress-circle-bg" cx="80" cy="80" r="70"/>
+                            <circle class="progress-circle-fill" cx="80" cy="80" r="70"/>
+                        </svg>
+                        <div style="text-align:center; margin-top:16px;">
+                            <div class="score-number">72<span style="font-size:24px;color:var(--gray-400)">/100</span></div>
+                            <div class="score-label">Readiness Score</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Skill Breakdown Radar -->
+                <div class="card">
+                    <div class="card-title">Skill Breakdown</div>
+                    <div class="radar-wrap">
+                        <svg width="240" height="220" viewBox="0 0 240 220" style="overflow:visible">
+                            <polygon points="120,20 214,75 214,145 120,200 26,145 26,75" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+                            <polygon points="120,44 193,83 193,137 120,176 47,137 47,83" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+                            <polygon points="120,68 172,91 172,129 120,152 68,129 68,91" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="120" y2="20" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="214" y2="75" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="214" y2="145" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="120" y2="200" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="26" y2="145" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="120" y1="110" x2="26" y2="75" stroke="#e5e7eb" stroke-width="1"/>
+                            <polygon points="120,37 199,82 202,139 120,183 41,136 41,80" fill="hsla(245,58%,51%,0.2)" stroke="hsl(245,58%,51%)" stroke-width="2"/>
+                            <text x="120" y="13" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">DSA</text>
+                            <text x="224" y="74" font-size="12" font-weight="600" fill="#374151">System Design</text>
+                            <text x="220" y="152" font-size="12" font-weight="600" fill="#374151">Communication</text>
+                            <text x="120" y="216" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">Resume</text>
+                            <text x="16" y="152" text-anchor="end" font-size="12" font-weight="600" fill="#374151">Aptitude</text>
+                            <text x="126" y="37" font-size="10" fill="hsl(245,58%,51%)" font-weight="700">75</text>
+                            <text x="200" y="80" font-size="10" fill="hsl(245,58%,51%)" font-weight="700">60</text>
+                            <text x="202" y="142" font-size="10" fill="hsl(245,58%,51%)" font-weight="700">80</text>
+                            <text x="110" y="183" font-size="10" fill="hsl(245,58%,51%)" font-weight="700">85</text>
+                            <text x="28" y="138" font-size="10" fill="hsl(245,58%,51%)" font-weight="700">70</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 3. Continue Practice -->
+                <div class="card">
+                    <div class="card-title">Continue Practice</div>
+                    <div class="topic-label">Dynamic Programming</div>
+                    <div class="topic-sub">Last studied 2 days ago</div>
+                    <div>
+                        <div class="progress-bar-label">
+                            <span>Progress</span><span>3 / 10 completed</span>
+                        </div>
+                        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:30%"></div></div>
+                    </div>
+                    <button class="btn-continue" onclick="showPage('practice')">Continue →</button>
+                </div>
+
+                <!-- 4. Weekly Goals -->
+                <div class="card">
+                    <div class="card-title">Weekly Goals</div>
+                    <div style="font-size:15px;color:var(--gray-600);margin-bottom:12px;">Problems Solved: <strong style="color:var(--gray-800)">12/20</strong> this week</div>
+                    <div class="progress-bar-label"><span>60% complete</span><span>8 remaining</span></div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:60%"></div></div>
+                    <div class="day-circles">
+                        <div class="day-circle-wrap"><div class="day-circle active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div><span class="day-label">Mon</span></div>
+                        <div class="day-circle-wrap"><div class="day-circle active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div><span class="day-label">Tue</span></div>
+                        <div class="day-circle-wrap"><div class="day-circle active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div><span class="day-label">Wed</span></div>
+                        <div class="day-circle-wrap"><div class="day-circle active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div><span class="day-label">Thu</span></div>
+                        <div class="day-circle-wrap"><div class="day-circle"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/></svg></div><span class="day-label">Fri</span></div>
+                        <div class="day-circle-wrap"><div class="day-circle"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/></svg></div><span class="day-label">Sat</span></div>
+                        <div class="day-circle-wrap"><div class="day-circle"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/></svg></div><span class="day-label">Sun</span></div>
+                    </div>
+                </div>
+
+                <!-- 5. Upcoming Assessments -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="card-title">Upcoming Assessments</div>
+                    <div class="assessment-item"><div><div class="assessment-name">DSA Mock Test</div><div class="assessment-time">Tomorrow, 10:00 AM</div></div><div class="assessment-badge">Tomorrow</div></div>
+                    <div class="assessment-item"><div><div class="assessment-name">System Design Review</div><div class="assessment-time">Wed, 2:00 PM</div></div><div class="assessment-badge">Wed</div></div>
+                    <div class="assessment-item"><div><div class="assessment-name">HR Interview Prep</div><div class="assessment-time">Friday, 11:00 AM</div></div><div class="assessment-badge">Friday</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ PRACTICE PAGE ══ -->
+        <div id="page-practice" class="page hidden">
+            <div class="page-title">Practice</div>
+            <div class="card"><p style="color:var(--gray-500)">Practice problems will appear here.</p></div>
+        </div>
+
+        <!-- ══ ASSESSMENTS PAGE ══ -->
+        <div id="page-assessments" class="page hidden">
+            <div class="page-title">Assessments</div>
+            <div class="card"><p style="color:var(--gray-500)">Your assessments will appear here.</p></div>
+        </div>
+
+        <!-- ══ RESOURCES PAGE ══ -->
+        <div id="page-resources" class="page hidden">
+            <div class="page-title">Resources</div>
+            <div class="card"><p style="color:var(--gray-500)">Learning resources will appear here.</p></div>
+        </div>
+
+        <!-- ══ PROFILE PAGE ══ -->
+        <div id="page-profile" class="page hidden">
+            <div class="page-title">Profile</div>
+            <div class="card"><p style="color:var(--gray-500)">Your profile will appear here.</p></div>
+        </div>
+
+        <!-- ══ JD ANALYZER PAGE ══ -->
+        <div id="page-analyzer" class="page hidden">
+            <div class="page-title">JD Analyzer</div>
+            <div class="page-subtitle">Paste a job description to extract skills, get a prep plan and readiness score.</div>
+            <div class="card">
+                <div class="card-title">Job Details</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Company Name</label>
+                        <input type="text" class="form-input" id="input-company" placeholder="e.g. Google, Infosys">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role / Position</label>
+                        <input type="text" class="form-input" id="input-role" placeholder="e.g. Software Engineer">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label class="form-label">Job Description</label>
+                    <textarea class="form-textarea" id="input-jd" placeholder="Paste the full job description here..."></textarea>
+                </div>
+                <button class="btn-primary" onclick="analyzeJD()">Analyze JD →</button>
+            </div>
+        </div>
+
+        <!-- ══ RESULTS PAGE ══ -->
+        <div id="page-results" class="page hidden">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                <div class="page-title" id="results-title">Analysis Results</div>
+                <button class="btn-secondary" onclick="showPage('analyzer')">← New Analysis</button>
+            </div>
+            <div class="page-subtitle" id="results-subtitle"></div>
+
+            <div class="score-display">
+                <div class="score-circle">
+                    <div class="score-num" id="res-score">0</div>
+                    <div class="score-max">/100</div>
+                </div>
+                <div class="score-info">
+                    <h3 id="res-score-label">Readiness Score</h3>
+                    <p id="res-score-desc">Based on detected skills and JD details</p>
+                    <div class="progress-bar-bg" style="width:300px;margin-top:10px;">
+                        <div class="progress-bar-fill" id="res-score-bar" style="width:0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom:24px;">
+                <div class="card-title">Extracted Skills by Category</div>
+                <div id="res-skills"></div>
+            </div>
+
+            <div class="results-grid">
+                <div class="card"><div class="card-title">Round-wise Preparation Checklist</div><div id="res-checklist"></div></div>
+                <div class="card"><div class="card-title">7-Day Preparation Plan</div><div id="res-plan"></div></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">10 Likely Interview Questions</div>
+                <div id="res-questions"></div>
+            </div>
+        </div>
+
+        <!-- ══ HISTORY PAGE ══ -->
+        <div id="page-history" class="page hidden">
+            <div class="page-title">Analysis History</div>
+            <div class="page-subtitle">All past JD analyses — persisted across sessions.</div>
+            <div id="history-list"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Skill Map ──
+const SKILL_MAP = {
+    'Core CS':     ['DSA','OOP','DBMS','OS','Networks'],
+    'Languages':   ['Java','Python','JavaScript','TypeScript','C++','C#','Go'],
+    'Web':         ['React','Next.js','Node.js','Express','REST','GraphQL'],
+    'Data':        ['SQL','MongoDB','PostgreSQL','MySQL','Redis'],
+    'Cloud/DevOps':['AWS','Azure','GCP','Docker','Kubernetes','CI/CD','Linux'],
+    'Testing':     ['Selenium','Cypress','Playwright','JUnit','PyTest']
+};
+const TAG_CLASS = {
+    'Core CS':'tag-cs','Languages':'tag-lang','Web':'tag-web',
+    'Data':'tag-data','Cloud/DevOps':'tag-cloud','Testing':'tag-test'
+};
+
+function extractSkills(jd) {
+    const text = ' ' + jd + ' ';
+    const found = {};
+    let any = false;
+    for (const [cat, skills] of Object.entries(SKILL_MAP)) {
+        const matched = skills.filter(s => new RegExp('\\b' + s.trim().replace(/[.+]/g,'\\$&') + '\\b','i').test(text));
+        if (matched.length) { found[cat] = matched; any = true; }
+    }
+    if (!any) found['General'] = ['Communication','Problem Solving','Teamwork','MS Office','Git'];
+    return found;
+}
+
+function calcScore(skills, company, role, jd) {
+    let s = 35;
+    s += Math.min(Object.keys(skills).filter(k => k !== 'General').length * 5, 30);
+    if (company.trim()) s += 10;
+    if (role.trim()) s += 10;
+    if (jd.length > 800) s += 10;
+    return Math.min(s, 100);
+}
+
+function generateChecklist(skills) {
+    const all = Object.values(skills).flat().map(s => s.toLowerCase());
+    const has = k => all.some(s => s.includes(k.toLowerCase()));
+    return [
+        { round: 'Round 1: Aptitude / Basics', items: [
+            'Revise quantitative aptitude — time, speed, percentage',
+            'Practice logical reasoning and verbal ability',
+            'Revise number systems and basic mathematics',
+            'Attempt 2 full-length aptitude mock tests',
+            has('Networks') ? 'Review networking basics (OSI model, TCP/IP)' : 'Review basic computer science fundamentals',
+            has('OS') ? 'Study OS concepts — scheduling, memory management' : 'Study basic software engineering principles',
+            'Revise common puzzles and brain teasers',
+        ]},
+        { round: 'Round 2: DSA + Core CS', items: [
+            has('DSA') ? 'Revise arrays, strings, linked lists, stacks, queues' : 'Revise basic data structures',
+            has('DSA') ? 'Practice trees, graphs, dynamic programming' : 'Review algorithms and time complexity',
+            has('DBMS') ? 'Revise DBMS — normalization, transactions, ACID' : 'Review database fundamentals',
+            has('OOP') ? 'Revise OOP — inheritance, polymorphism, abstraction' : 'Review programming paradigms',
+            has('OS') ? 'Study OS — deadlocks, semaphores, paging' : 'Review system software concepts',
+            'Practice 10 coding problems on arrays and strings',
+            has('DSA') ? 'Solve 5 dynamic programming problems' : 'Solve 5 algorithm problems',
+            'Review time and space complexity analysis',
+        ]},
+        { round: 'Round 3: Technical Interview', items: [
+            has('react') || has('javascript') ? 'Revise React hooks, state management, lifecycle' : 'Review your primary tech stack',
+            has('node') || has('express') ? 'Revise Node.js — event loop, REST API design' : 'Review backend concepts',
+            has('sql') || has('mongodb') ? 'Revise database queries and indexing' : 'Review data storage concepts',
+            has('docker') || has('kubernetes') ? 'Review containerisation and deployment' : 'Review deployment concepts',
+            'Prepare 2–3 projects to explain end-to-end',
+            'Revise system design basics — scalability, caching',
+            'Prepare STAR format answers for project discussions',
+            has('aws') || has('azure') || has('gcp') ? 'Review cloud services you have used' : 'Review software architecture patterns',
+        ]},
+        { round: 'Round 4: Managerial / HR', items: [
+            'Prepare "Tell me about yourself" — 2-minute version',
+            'Prepare answers to "Why this company?"',
+            'List 3 strengths with supporting examples',
+            'List 2 weaknesses with improvement steps',
+            'Prepare for salary negotiation questions',
+            'Research the company — mission, products, recent news',
+            'Prepare questions to ask the interviewer',
+        ]}
+    ];
+}
+
+function generatePlan(skills) {
+    const all = Object.values(skills).flat().map(s => s.toLowerCase());
+    const has = k => all.some(s => s.includes(k.toLowerCase()));
+    return [
+        { day:'Day 1–2', title:'Basics + Core CS', tasks:[
+            'Revise OOP concepts with real examples',
+            has('DBMS') ? 'Study DBMS — normalization, joins, transactions' : 'Review fundamental CS concepts',
+            has('OS') ? 'Study OS — processes, threads, memory management' : 'Review computer architecture basics',
+            has('Networks') ? 'Study networking — HTTP, TCP/IP, DNS' : 'Review software engineering basics',
+            'Practice 5 aptitude problems daily',
+        ]},
+        { day:'Day 3–4', title:'DSA + Coding Practice', tasks:[
+            'Revise arrays, linked lists, stacks, queues',
+            'Practice sorting and searching algorithms',
+            has('DSA') ? 'Study trees, graphs, BFS/DFS' : 'Study algorithm design techniques',
+            has('DSA') ? 'Solve 5–8 dynamic programming problems' : 'Solve medium-level coding problems',
+            'Practice on LeetCode / HackerRank',
+        ]},
+        { day:'Day 5', title:'Project + Resume Alignment', tasks:[
+            'Review all your projects end-to-end',
+            has('react') ? 'Revise React concepts used in your projects' : 'Revise key tech stack in your projects',
+            has('sql') || has('mongodb') ? 'Revise database design decisions in projects' : 'Document key technical decisions',
+            'Tailor your resume keywords to match the JD',
+            'Prepare concise project explanations (2 min each)',
+        ]},
+        { day:'Day 6', title:'Mock Interview Questions', tasks:[
+            'Attempt a full mock technical interview',
+            has('react') ? 'Practice React-specific questions (hooks, rendering)' : 'Practice stack-specific questions',
+            has('sql') ? 'Practice SQL query writing and optimisation' : 'Practice system design questions',
+            'Record yourself answering HR questions',
+            'Review weak areas identified in mock',
+        ]},
+        { day:'Day 7', title:'Revision + Weak Areas', tasks:[
+            'Revise all flagged weak areas from earlier days',
+            'Re-read your resume and projects once more',
+            'Attempt one final aptitude mock test',
+            'Prepare your introduction and closing statement',
+            'Rest well — be confident for the interview',
+        ]}
+    ];
+}
+
+function generateQuestions(skills) {
+    const all = Object.values(skills).flat().map(s => s.toLowerCase());
+    const has = k => all.some(s => s.includes(k.toLowerCase()));
+    const q = [];
+    if (has('DSA'))         q.push('How would you optimise search in a sorted rotated array?');
+    if (has('SQL'))         q.push('Explain indexing in SQL and when it improves performance.');
+    if (has('React'))       q.push('Explain state management options in React — Context vs Redux vs Zustand.');
+    if (has('Node'))        q.push('How does the Node.js event loop work? What are microtasks vs macrotasks?');
+    if (has('Python'))      q.push('What are Python decorators and how do you implement them?');
+    if (has('Java'))        q.push('Explain the difference between abstract classes and interfaces in Java.');
+    if (has('Docker'))      q.push('What is the difference between a Docker image and a container?');
+    if (has('AWS') || has('Azure') || has('GCP')) q.push('Describe a scenario where you would use serverless architecture.');
+    if (has('MongoDB'))     q.push('When would you choose MongoDB over a relational database?');
+    if (has('TypeScript'))  q.push('What are the advantages of TypeScript over JavaScript in large codebases?');
+    if (has('GraphQL'))     q.push('What are the key differences between REST and GraphQL APIs?');
+    if (has('Kubernetes'))  q.push('Explain the role of a Kubernetes pod and how services communicate.');
+    if (has('OOP'))         q.push('Explain SOLID principles with a real-world example.');
+    if (has('DBMS'))        q.push('What is the difference between 2NF and 3NF normalisation?');
+    if (has('OS'))          q.push('How does virtual memory work and what is a page fault?');
+    if (has('PostgreSQL'))  q.push('Explain the difference between INNER JOIN and LEFT JOIN with examples.');
+    if (has('Redis'))       q.push('What are common use cases for Redis in a production system?');
+    q.push('Describe a challenging technical problem you solved in a project.');
+    q.push('How do you approach debugging a production issue?');
+    q.push('How do you stay updated with new technologies?');
+    return q.slice(0, 10);
+}
+
+// ── Analyze ──
+function analyzeJD() {
+    const company = document.getElementById('input-company').value.trim();
+    const role    = document.getElementById('input-role').value.trim();
+    const jd      = document.getElementById('input-jd').value.trim();
+    if (!jd) { alert('Please paste a job description first.'); return; }
+
+    const skills    = extractSkills(jd);
+    const score     = calcScore(skills, company, role, jd);
+    const checklist = generateChecklist(skills);
+    const plan      = generatePlan(skills);
+    const questions = generateQuestions(skills);
+
+    const entry = {
+        id: Date.now(),
+        createdAt: new Date().toLocaleString(),
+        company: company || 'Unknown Company',
+        role: role || 'Unknown Role',
+        jdText: jd, extractedSkills: skills,
+        checklist, plan, questions, readinessScore: score
+    };
+
+    const history = JSON.parse(localStorage.getItem('jd_history') || '[]');
+    history.unshift(entry);
+    localStorage.setItem('jd_history', JSON.stringify(history));
+
+    renderResults(entry);
+    showPage('results');
+}
+
+// ── Render Results ──
+function renderResults(entry) {
+    document.getElementById('results-title').textContent = entry.company !== 'Unknown Company' ? entry.company + ' — Results' : 'Analysis Results';
+    document.getElementById('results-subtitle').textContent = (entry.role !== 'Unknown Role' ? entry.role + ' · ' : '') + entry.createdAt;
+    document.getElementById('res-score').textContent = entry.readinessScore;
+    document.getElementById('res-score-bar').style.width = entry.readinessScore + '%';
+    const label = entry.readinessScore >= 80 ? 'Strong Readiness' : entry.readinessScore >= 60 ? 'Good Readiness' : entry.readinessScore >= 45 ? 'Moderate Readiness' : 'Needs Preparation';
+    document.getElementById('res-score-label').textContent = label;
+
+    const skillsEl = document.getElementById('res-skills');
+    skillsEl.innerHTML = '';
+    for (const [cat, list] of Object.entries(entry.extractedSkills)) {
+        const cls = TAG_CLASS[cat] || 'tag-general';
+        skillsEl.innerHTML += `<div class="tag-group"><div class="tag-group-label">${cat}</div><div class="tags">${list.map(s => `<span class="tag ${cls}">${s.trim()}</span>`).join('')}</div></div>`;
+    }
+
+    document.getElementById('res-checklist').innerHTML = entry.checklist.map((r, ri) => `
+        <div class="round-block">
+            <div class="round-title"><span class="round-badge">R${ri+1}</span>${r.round.split(': ')[1]}</div>
+            ${r.items.map((item, ii) => `<div class="checklist-item"><input type="checkbox" id="c${ri}-${ii}"><label for="c${ri}-${ii}">${item}</label></div>`).join('')}
+        </div>`).join('');
+
+    document.getElementById('res-plan').innerHTML = entry.plan.map(d => `
+        <div class="day-row">
+            <div class="day-badge">${d.day}</div>
+            <div class="day-content"><strong>${d.title}</strong><br>${d.tasks.map(t => '• ' + t).join('<br>')}</div>
+        </div>`).join('');
+
+    document.getElementById('res-questions').innerHTML = entry.questions.map((q, i) => `
+        <div class="question-item"><div class="q-num">${i+1}</div><div class="q-text">${q}</div></div>`).join('');
+}
+
+// ── History ──
+function renderHistory() {
+    const history = JSON.parse(localStorage.getItem('jd_history') || '[]');
+    const el = document.getElementById('history-list');
+    if (!history.length) {
+        el.innerHTML = `<div class="empty-state"><p>No analyses yet.</p><button class="btn-primary" onclick="showPage('analyzer')">Analyze your first JD →</button></div>`;
+        return;
+    }
+    el.innerHTML = history.map(e => `
+        <div class="history-item" onclick="loadEntry(${e.id})">
+            <div>
+                <div class="history-company">${e.company} — ${e.role}</div>
+                <div class="history-meta">${e.createdAt} · ${Object.values(e.extractedSkills).flat().length} skills detected</div>
+            </div>
+            <div class="history-score">${e.readinessScore}</div>
+        </div>`).join('');
+}
+
+function loadEntry(id) {
+    const history = JSON.parse(localStorage.getItem('jd_history') || '[]');
+    const entry = history.find(e => e.id === id);
+    if (entry) { renderResults(entry); showPage('results'); }
+}
+
+// ── Navigation ──
+const PAGES = ['dashboard','practice','assessments','resources','profile','analyzer','results','history'];
+const TITLES = { dashboard:'Dashboard', practice:'Practice', assessments:'Assessments', resources:'Resources', profile:'Profile', analyzer:'JD Analyzer', results:'Results', history:'History' };
+const NAV_ITEMS = document.querySelectorAll('.nav-item');
+
+function showPage(name) {
+    PAGES.forEach(p => document.getElementById('page-' + p).classList.add('hidden'));
+    document.getElementById('page-' + name).classList.remove('hidden');
+    document.getElementById('page-header-title').textContent = TITLES[name];
+    NAV_ITEMS.forEach(el => el.classList.remove('active'));
+    const idx = PAGES.indexOf(name);
+    if (idx >= 0 && NAV_ITEMS[idx]) NAV_ITEMS[idx].classList.add('active');
+    if (name === 'history') renderHistory();
+    window.location.hash = name;
+}
+
+window.addEventListener('load', () => {
+    const hash = window.location.hash.replace('#','');
+    showPage(PAGES.includes(hash) ? hash : 'dashboard');
+});
+</script>
+</body>
+</html>
